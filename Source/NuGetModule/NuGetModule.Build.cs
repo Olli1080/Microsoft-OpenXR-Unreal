@@ -27,7 +27,7 @@ public class NuGetModule : ModuleRules
 			// these parameters mandatory for winrt support
 			bEnableExceptions = true;
 			bUseUnity = false;
-			CppStandard = CppStandardVersion.Cpp17;
+			CppStandard = CppStandardVersion.Cpp20;
 			PublicSystemLibraries.AddRange(new string [] { "shlwapi.lib", "runtimeobject.lib" });
 
 			// prepare everything for nuget
@@ -191,6 +191,7 @@ public class NuGetModule : ModuleRules
 				}
 			}
 
+			/*
 			// get WinRT package 
 			string CppWinRTPackage = InstalledPackages.FirstOrDefault(x => x.StartsWith("Microsoft.Windows.CppWinRT"));
 			if (!string.IsNullOrEmpty(CppWinRTPackage))
@@ -223,8 +224,32 @@ public class NuGetModule : ModuleRules
 			{
 				// fall back to default WinSDK headers if no winrt package in our list
 				PublicIncludePaths.Add(Path.Combine(Target.WindowsPlatform.WindowsSdkDir, "Include", Target.WindowsPlatform.WindowsSdkVersion, "cppwinrt"));
+			}*/
+			{
+				string CppWinRTExe = Path.Combine(Target.WindowsPlatform.WindowsSdkDir, "bin", Target.WindowsPlatform.WindowsSdkVersion, "x64", "cppwinrt.exe");
+				string CppWinRTFolder = Path.Combine(PluginDirectory, "Intermediate", "cppwinrtgen", MyModuleName);
+				Directory.CreateDirectory(CppWinRTFolder);
+
+				// all downloaded winmd file with WinSDK to be processed by cppwinrt.exe
+				var WinMDFilesStringbuilder = new System.Text.StringBuilder();
+				foreach (var winmd in WinMDFiles)
+				{
+					WinMDFilesStringbuilder.Append(" -input \"");
+					WinMDFilesStringbuilder.Append(winmd);
+					WinMDFilesStringbuilder.Append("\"");
+				}
+
+				// generate winrt headers and add them into include paths
+				int ExitCode = 0;
+				Utils.RunLocalProcessAndReturnStdOut(CppWinRTExe, string.Format("{0} -input \"{1}\" -output \"{2}\"", WinMDFilesStringbuilder, Target.WindowsPlatform.WindowsSdkVersion, CppWinRTFolder), out ExitCode, true);
+				if (ExitCode < 0)
+				{
+					throw new BuildException("Failed to get generate WinRT headers.  See log for details.");
+				}
+
+				PublicIncludePaths.Add(CppWinRTFolder);
 			}
-		}
+        }
 	}
 
 	private void SafeCopy(string source, string destination)

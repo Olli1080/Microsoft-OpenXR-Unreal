@@ -124,7 +124,7 @@ namespace MicrosoftOpenXR
 			}
 
 			m_QRTrackerAsyncOperation = QRCodeWatcher::RequestAccessAsync();
-			m_QRTrackerAsyncOperation.Completed([=](auto&& asyncInfo, auto&& asyncStatus)
+			m_QRTrackerAsyncOperation.Completed([this](auto&& asyncInfo, auto&& asyncStatus)
 			{
 				if (asyncStatus == winrt::Windows::Foundation::AsyncStatus::Completed)
 				{
@@ -133,10 +133,10 @@ namespace MicrosoftOpenXR
 						std::lock_guard<std::recursive_mutex> lock(QRCodeRefsLock);
 
 						QRTrackerInstance = QRCodeWatcher();
-						OnAddedEventToken = QRTrackerInstance.Added(winrt::auto_revoke, [=](auto&& sender, auto&& args) { OnAdded(sender, args); });
-						OnUpdatedEventToken = QRTrackerInstance.Updated(winrt::auto_revoke, [=](auto&& sender, auto&& args) { OnUpdated(sender, args); });
-						OnRemovedEventToken = QRTrackerInstance.Removed(winrt::auto_revoke, [=](auto&& sender, auto&& args) { OnRemoved(sender, args); });
-						OnEnumerationCompletedToken = QRTrackerInstance.EnumerationCompleted(winrt::auto_revoke, [=](auto&& sender, auto&& args) { OnEnumerationCompleted(sender, args); });
+						OnAddedEventToken = QRTrackerInstance.Added(winrt::auto_revoke, [this](auto&& sender, auto&& args) { OnAdded(sender, args); });
+						OnUpdatedEventToken = QRTrackerInstance.Updated(winrt::auto_revoke, [this](auto&& sender, auto&& args) { OnUpdated(sender, args); });
+						OnRemovedEventToken = QRTrackerInstance.Removed(winrt::auto_revoke, [this](auto&& sender, auto&& args) { OnRemoved(sender, args); });
+						OnEnumerationCompletedToken = QRTrackerInstance.EnumerationCompleted(winrt::auto_revoke, [this](auto&& sender, auto&& args) { OnEnumerationCompleted(sender, args); });
 
 						// Start the tracker
 						QRTrackerInstance.Start();

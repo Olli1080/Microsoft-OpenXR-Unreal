@@ -7,6 +7,8 @@
 #include "HoloLensApplication.h"
 
 #include <Unknwn.h>
+#include <winrt/Windows.Graphics.Holographic.h>
+#include <winrt/Windows.UI.Core.h>
 
 namespace MicrosoftOpenXR
 {
@@ -36,14 +38,14 @@ namespace MicrosoftOpenXR
 			// HolographicSpace. This ensures keyboard input and other things will still route to the engine. Otherwise the
 			// XrSession will create its own CoreWindow and HolographicSpace and it will take all focus. The HolographicSpace will
 			// only be available if start in VR is enabled.
-			Windows::Graphics::Holographic::HolographicSpace ^ holographicSpace =
+			winrt::Windows::Graphics::Holographic::HolographicSpace holographicSpace =
 				FHoloLensApplication::GetHoloLensApplication()->GetHolographicSpace();
 			if (holographicSpace)
 			{
 				HolographicWindowAttachment.next = InNext;
-				HolographicWindowAttachment.holographicSpace = reinterpret_cast<::IUnknown*>(holographicSpace);
+				HolographicWindowAttachment.holographicSpace = winrt::get_unknown(holographicSpace);
 				HolographicWindowAttachment.coreWindow =
-					reinterpret_cast<::IUnknown*>(Windows::UI::Core::CoreWindow::GetForCurrentThread());
+					winrt::get_unknown(winrt::Windows::UI::Core::CoreWindow::GetForCurrentThread());
 				return &HolographicWindowAttachment;
 			}
 		}

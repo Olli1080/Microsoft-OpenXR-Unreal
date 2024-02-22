@@ -174,7 +174,7 @@ namespace MicrosoftOpenXR
 
 		auto FindAllAsyncOp = MediaFrameSourceGroup::FindAllAsync();
 		AsyncInfo = FindAllAsyncOp;
-		FindAllAsyncOp.Completed([=](auto&& asyncInfo, auto&& asyncStatus)
+		FindAllAsyncOp.Completed([=, this](auto&& asyncInfo, auto&& asyncStatus)
 		{
 			std::lock_guard<std::recursive_mutex> lock(RefsLock);
 			if (asyncStatus == winrt::Windows::Foundation::AsyncStatus::Canceled)
@@ -279,7 +279,7 @@ namespace MicrosoftOpenXR
 			winrt::agile_ref < winrt::Windows::Media::Capture::MediaCapture > Capture{ MediaCapture() };
 			auto InitializeAsyncOp = Capture.get().InitializeAsync(CaptureSettings);
 			AsyncInfo = InitializeAsyncOp;
-			InitializeAsyncOp.Completed([=](auto&& asyncInfo, auto&& asyncStatus)
+			InitializeAsyncOp.Completed([=, this](auto&& asyncInfo, auto&& asyncStatus)
 			{
 				std::lock_guard<std::recursive_mutex> lock(RefsLock);
 				if (asyncStatus == winrt::Windows::Foundation::AsyncStatus::Canceled)
@@ -301,7 +301,7 @@ namespace MicrosoftOpenXR
 				// Now create and start the frame reader
 				auto CreateFrameReaderAsyncOp = Capture.get().CreateFrameReaderAsync(FrameSource);
 				AsyncInfo = CreateFrameReaderAsyncOp;
-				CreateFrameReaderAsyncOp.Completed([=](auto&& asyncInfo, auto&& asyncStatus)
+				CreateFrameReaderAsyncOp.Completed([=, this](auto&& asyncInfo, auto&& asyncStatus)
 				{
 					std::lock_guard<std::recursive_mutex> lock(RefsLock);
 					if (asyncStatus == winrt::Windows::Foundation::AsyncStatus::Canceled)
@@ -319,7 +319,7 @@ namespace MicrosoftOpenXR
 					MediaFrameReader FrameReader = asyncInfo.GetResults();
 					auto StartAsyncOp = FrameReader.StartAsync();
 					AsyncInfo = StartAsyncOp;
-					StartAsyncOp.Completed([=](auto&& asyncInfo, auto&& asyncStatus)
+					StartAsyncOp.Completed([=, this](auto&& asyncInfo, auto&& asyncStatus)
 					{
 						std::lock_guard<std::recursive_mutex> lock(RefsLock);
 						// Finally, copy to our object
@@ -381,7 +381,7 @@ namespace MicrosoftOpenXR
 		{
 			auto StopAsyncOp = CameraFrameReader.StopAsync();
 			AsyncInfo = StopAsyncOp;
-			StopAsyncOp.Completed([=](auto&& asyncInfo, auto&& asyncStatus)
+			StopAsyncOp.Completed([this](auto&& asyncInfo, auto&& asyncStatus)
 			{
 				if (asyncStatus == winrt::Windows::Foundation::AsyncStatus::Completed)
 				{

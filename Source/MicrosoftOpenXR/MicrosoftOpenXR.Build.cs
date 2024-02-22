@@ -16,7 +16,7 @@ public class MicrosoftOpenXR : ModuleRules
 			// these parameters mandatory for winrt support
 			bEnableExceptions = true;
 			bUseUnity = false;
-			CppStandard = CppStandardVersion.Cpp17;
+			CppStandard = CppStandardVersion.Cpp20;
 			PublicSystemLibraries.AddRange(new string[] { "shlwapi.lib", "runtimeobject.lib" });
 		}
 
