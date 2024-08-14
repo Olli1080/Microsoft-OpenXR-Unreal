@@ -151,9 +151,9 @@ bool UMicrosoftOpenXRFunctionLibrary::IsSpeechRecognitionAvailable()
 {
 #if PLATFORM_WINDOWS || PLATFORM_HOLOLENS
 	return true;
-#endif
-
+#else
 	return false;
+#endif
 }
 
 void UMicrosoftOpenXRFunctionLibrary::AddKeywords(TArray<FKeywordInput> Keywords)
@@ -217,9 +217,9 @@ bool UMicrosoftOpenXRFunctionLibrary::ToggleAzureObjectAnchors(const bool bOnOff
 {
 #if PLATFORM_WINDOWS || PLATFORM_HOLOLENS
 	return MicrosoftOpenXR::g_MicrosoftOpenXRModule->AzureObjectAnchorsPlugin->OnToggleARCapture(bOnOff);
-#endif
-
+#else
 	return true;
+#endif
 }
 
 void UMicrosoftOpenXRFunctionLibrary::InitAzureObjectAnchors(FAzureObjectAnchorSessionConfiguration AOAConfiguration)
@@ -254,9 +254,9 @@ TArray<FARTraceResult> UMicrosoftOpenXRFunctionLibrary::LineTraceTrackedAzureObj
 	});
 
 	return Results;
-#endif
-
+#else
 	return {};
+#endif
 }
 
 #undef LOCTEXT_NAMESPACE

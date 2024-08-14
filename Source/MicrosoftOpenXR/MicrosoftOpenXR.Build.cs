@@ -16,7 +16,7 @@ public class MicrosoftOpenXR : ModuleRules
 			// these parameters mandatory for winrt support
 			bEnableExceptions = true;
 			bUseUnity = false;
-			CppStandard = CppStandardVersion.Cpp17;
+			CppStandard = CppStandardVersion.Cpp20;
 			PublicSystemLibraries.AddRange(new string[] { "shlwapi.lib", "runtimeobject.lib" });
 		}
 
@@ -57,8 +57,10 @@ public class MicrosoftOpenXR : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"NuGetModule"
-			}
+				"NuGetModule",
+				"XRBase",
+				"ColorManagement"
+            }
 		);
 
 		if (Target.bBuildEditor)
@@ -109,7 +111,7 @@ public class MicrosoftOpenXR : ModuleRules
 			AddEngineThirdPartyPrivateStaticDependencies(Target, "NVAPI");
 			AddEngineThirdPartyPrivateStaticDependencies(Target, "AMD_AGS");
 			AddEngineThirdPartyPrivateStaticDependencies(Target, "NVAftermath");
-			AddEngineThirdPartyPrivateStaticDependencies(Target, "IntelMetricsDiscovery");
+			//AddEngineThirdPartyPrivateStaticDependencies(Target, "IntelMetricsDiscovery");
 			AddEngineThirdPartyPrivateStaticDependencies(Target, "IntelExtensionsFramework");
 		}
 	}

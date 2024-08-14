@@ -13,6 +13,8 @@
 #include "winrt/Windows.Storage.h"
 #include "winrt/Windows.Storage.Streams.h"
 
+#include "XRTrackingSystemBase.h"
+
 namespace WF = winrt::Windows::Foundation;
 namespace WFN = WF::Numerics;
 

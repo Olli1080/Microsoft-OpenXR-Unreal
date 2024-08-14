@@ -167,7 +167,7 @@ namespace MicrosoftOpenXR
 		return InNext;
 	}
 
-	void FSecondaryViewConfigurationPlugin::GetViewConfigurations(XrSystemId InSystem, TArray<XrViewConfigurationView>& OutViews)
+	/*void FSecondaryViewConfigurationPlugin::GetViewConfigurations(XrSystemId InSystem, TArray<XrViewConfigurationView>& OutViews)
 	{
 		PiplinedFrameState& ViewConfigurationFrameState = GetSecondaryViewStateForThread();
 
@@ -180,9 +180,9 @@ namespace MicrosoftOpenXR
 				OutViews.Append(EnabledViewConfigurationViews[i]);
 			}
 		}
-	}
+	}*/
 
-	void FSecondaryViewConfigurationPlugin::GetViewLocations(
+	/*void FSecondaryViewConfigurationPlugin::GetViewLocations(
 		XrSession InSession, XrTime InDisplayTime, XrSpace InSpace, TArray<XrView>& OutViews)
 	{
 		PiplinedFrameState& ViewConfigurationFrameState = GetSecondaryViewStateForThread();
@@ -219,11 +219,12 @@ namespace MicrosoftOpenXR
 				OutViews.Append(SecondaryViews);
 			}
 		}
-	}
+	}*/
 
-	const void* FSecondaryViewConfigurationPlugin::OnEndFrame(XrSession InSession, XrTime DisplayTime,
-		const TArray<XrSwapchainSubImage> InColorImages, const TArray<XrSwapchainSubImage> InDepthImages, const void* InNext)
+	const void* FSecondaryViewConfigurationPlugin::OnEndFrame(XrSession InSession, XrTime DisplayTime, const void* InNext)
 	{
+		//TODO::
+		/*
 		const PiplinedFrameState& ViewConfigurationFrameState = GetSecondaryViewStateForThread();
 
 		SecondaryProjectionLayers.Reset();
@@ -274,6 +275,7 @@ namespace MicrosoftOpenXR
 
 			SecondaryProjectionLayers.Add(SingleProjectionLayer(ViewConfigState.viewConfigurationType,
 				EnabledViewConfigEnvBlendModes[i], ViewConfigurationFrameState.ViewSpace, std::move(ProjectionViews)));
+				
 		}
 
 		// Now that the SecondaryProjectionLayers TArray is completed and there is no more chance of resize, set up the
@@ -291,7 +293,7 @@ namespace MicrosoftOpenXR
 			SecondaryViewConfigurationEndInfo.viewConfigurationLayersInfo = SecondaryViewLayers.GetData();
 			return &SecondaryViewConfigurationEndInfo;
 		}
-
+		*/
 		return InNext;
 	}
 

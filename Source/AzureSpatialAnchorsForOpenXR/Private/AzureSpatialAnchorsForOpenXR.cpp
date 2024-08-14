@@ -1004,7 +1004,7 @@ EAzureSpatialAnchorsResult FAzureSpatialAnchorsForOpenXR::SetCloudAnchorExpirati
 
 	if (InLifetimeInSeconds <= 0.0f)
 	{
-		UE_LOG(LogHMD, Log, TEXT("Warning: FAzureSpatialAnchorsForOpenXR::SetCloudAnchorExpiration setting with lifetime %d which is invalid!  Expiration not set."), InLifetimeInSeconds);
+		UE_LOG(LogHMD, Log, TEXT("Warning: FAzureSpatialAnchorsForOpenXR::SetCloudAnchorExpiration setting with lifetime %f which is invalid!  Expiration not set."), InLifetimeInSeconds);
 		return EAzureSpatialAnchorsResult::FailBadLifetime;
 	}
 	int64 lifetimeInt = static_cast<int64>(std::ceil(InLifetimeInSeconds));

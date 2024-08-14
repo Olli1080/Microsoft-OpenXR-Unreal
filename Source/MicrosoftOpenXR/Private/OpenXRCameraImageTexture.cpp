@@ -11,6 +11,9 @@
 #include "SceneUtils.h"
 #include "MediaShaders.h"
 #include "HeadMountedDisplayTypes.h"
+#include "XRTrackingSystemBase.h"
+#include "ShaderParameterUtils.h"
+#include "ColorManagementDefines.h"
 
 #if PLATFORM_WINDOWS || PLATFORM_HOLOLENS
 //-------------------------------------------------------------------------------------------------
@@ -94,7 +97,7 @@ public:
 	/**
 	 * Called when the resource is initialized. This is only called by the rendering thread.
 	 */
-	virtual void InitRHI() override
+	virtual void InitRHI(FRHICommandListBase& RHICmdList) override
 	{
 		check(IsInRenderingThread());
 
@@ -218,7 +221,7 @@ public:
 	}
 
 	/** Render thread update of the texture so we don't get 2 updates per frame on the render thread */
-	void Init_RenderThread(std::shared_ptr<winrt::handle> handle)
+	void Init_RenderThread(std::shared_ptr<winrt::handle> handle, FRHICommandListImmediate& immediate)
 	{
 		check(IsInRenderingThread());
 		if (LastFrameNumber != GFrameNumber)
@@ -226,7 +229,7 @@ public:
 			LastFrameNumber = GFrameNumber;
 			ReleaseRHI();
 			CameraImageHandle = handle;
-			InitRHI();
+			InitRHI(immediate);
 		}
 	}
 
@@ -270,7 +273,14 @@ private:
 			FShaderResourceViewRHIRef Y_SRV = RHICreateShaderResourceView(CopyTextureRef, 0, 1, PF_G8);
 			FShaderResourceViewRHIRef UV_SRV = RHICreateShaderResourceView(CopyTextureRef, 0, 1, PF_R8G8);
 
-			ConvertShader->SetParameters(CommandList, CopyTextureRef->GetSizeXY(), Y_SRV, UV_SRV, OutputDim, MediaShaders::YuvToRgbRec601Scaled, MediaShaders::YUVOffset8bits, false);
+			FMatrix PreMtx = FMatrix::Identity;
+			PreMtx.M[0][3] = -MediaShaders::YUVOffset8bits.X;
+			PreMtx.M[1][3] = -MediaShaders::YUVOffset8bits.Y;
+			PreMtx.M[2][3] = -MediaShaders::YUVOffset8bits.Z;
+			auto YUVToRGBMatrix = FMatrix44f(MediaShaders::YuvToRgbRec601Scaled * PreMtx);
+
+			SetShaderParametersLegacyPS(CommandList, ConvertShader, CopyTextureRef->GetSizeXY(), Y_SRV, UV_SRV, OutputDim, YUVToRGBMatrix, UE::Color::EEncoding::sRGB, FMatrix44f::Identity, false);
+			//ConvertShader->SetParameters(CommandList, CopyTextureRef->GetSizeXY(), Y_SRV, UV_SRV, OutputDim, MediaShaders::YuvToRgbRec601Scaled, MediaShaders::YUVOffset8bits, false);
 
 			// draw full size quad into render target
 			FBufferRHIRef VertexBuffer = CreateTempMediaVertexBuffer();
@@ -339,9 +349,9 @@ void UOpenXRCameraImageTexture::Init(std::shared_ptr<winrt::handle> handle)
 		{
 			FOpenXRCameraImageResource* LambdaResource = static_cast<FOpenXRCameraImageResource*>(GetResource());
 			ENQUEUE_RENDER_COMMAND(Init_RenderThread)(
-				[LambdaResource, handle](FRHICommandListImmediate&)
+				[LambdaResource, handle](FRHICommandListImmediate& immediate)
 			{
-				LambdaResource->Init_RenderThread(handle);
+				LambdaResource->Init_RenderThread(handle, immediate);
 			});
 		}
 		else

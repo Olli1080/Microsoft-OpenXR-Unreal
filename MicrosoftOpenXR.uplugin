@@ -66,6 +66,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "XRBase",
+			"Enabled": true
+		},
+		{
 			"Name": "OpenXREyeTracker",
 			"Enabled": true
 		},
