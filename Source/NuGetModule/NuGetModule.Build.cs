@@ -6,6 +6,7 @@ using System.Linq;
 using System;
 using System.Collections.Generic;
 using EpicGames.Core;
+using Microsoft.Extensions.Logging;
 using UnrealBuildTool;
 
 public class NuGetModule : ModuleRules
@@ -37,7 +38,7 @@ public class NuGetModule : ModuleRules
 
 			string BinariesSubFolder = Path.Combine("Binaries", "ThirdParty", Target.Type.ToString(), Target.Platform.ToString(), Target.Architecture.ToString());
 
-			PublicDefinitions.Add(string.Format("THIRDPARTY_BINARY_SUBFOLDER=\"{0}\"", BinariesSubFolder.Replace(@"\", @"\\")));
+			PublicDefinitions.Add($"THIRDPARTY_BINARY_SUBFOLDER=\"{BinariesSubFolder.Replace(@"\", @"\\")}\"");
 
 			string BinariesFolder = Path.Combine(PluginDirectory, BinariesSubFolder);
 			Directory.CreateDirectory(BinariesFolder);
@@ -62,7 +63,8 @@ public class NuGetModule : ModuleRules
 			// run nuget to update the packages
 			{
 				int ExitCode = 0;
-				Utils.RunLocalProcessAndReturnStdOut(NugetExe, string.Format("install \"{0}\" -OutputDirectory \"{1}\"", Path.Combine(ModuleDirectory, "packages.config"), NugetFolder), out ExitCode, true);
+				Utils.RunLocalProcessAndReturnStdOut(NugetExe,
+					$"install \"{Path.Combine(ModuleDirectory, "packages.config")}\" -OutputDirectory \"{NugetFolder}\"", out ExitCode, true);
 				if (ExitCode < 0)
 				{
 					throw new BuildException("Failed to get nuget packages.  See log for details.");
@@ -70,7 +72,8 @@ public class NuGetModule : ModuleRules
 			}
 
 			// get list of the installed packages, that's needed because the code should get particular versions of the installed packages
-			string[] InstalledPackages = Utils.RunLocalProcessAndReturnStdOut(NugetExe, string.Format("list -Source \"{0}\"", NugetFolder)).Split(new char[] { '\r', '\n' });
+			string[] InstalledPackages = Utils.RunLocalProcessAndReturnStdOut(NugetExe,
+				$"list -Source \"{NugetFolder}\"").Split(new char[] { '\r', '\n' });
 
 			// winmd files of the packages
 			List<string> WinMDFiles = new List<string>();
@@ -86,7 +89,8 @@ public class NuGetModule : ModuleRules
 				string WinMDFile = Path.Combine(NugetFolder, QRFolderName, @"lib\uap10.0.18362\Microsoft.MixedReality.QR.winmd");
 				SafeCopy(WinMDFile, Path.Combine(BinariesFolder, "Microsoft.MixedReality.QR.winmd"));
 
-				SafeCopy(Path.Combine(NugetFolder, QRFolderName, string.Format(@"runtimes\win10-{0}\native\Microsoft.MixedReality.QR.dll", Target.WindowsPlatform.Architecture.ToString())),
+				SafeCopy(Path.Combine(NugetFolder, QRFolderName,
+						$@"runtimes\win10-{Target.WindowsPlatform.Architecture.ToString()}\native\Microsoft.MixedReality.QR.dll"),
 					Path.Combine(BinariesFolder, "Microsoft.MixedReality.QR.dll"));
 
 				// also both both binaries must be in RuntimeDependencies, unless you get failures in Hololens platform
@@ -107,10 +111,12 @@ public class NuGetModule : ModuleRules
 				string WinMDFile = Path.Combine(NugetFolder, ASAFolderName, @"lib\uap10.0\Microsoft.Azure.SpatialAnchors.winmd");
 				SafeCopy(WinMDFile, Path.Combine(BinariesFolder, "Microsoft.Azure.SpatialAnchors.winmd"));
 
-				SafeCopy(Path.Combine(NugetFolder, ASAFolderName, string.Format(@"runtimes\win10-{0}\native\Microsoft.Azure.SpatialAnchors.dll", Target.WindowsPlatform.Architecture.ToString())),
+				SafeCopy(Path.Combine(NugetFolder, ASAFolderName,
+						$@"runtimes\win10-{Target.WindowsPlatform.Architecture.ToString()}\native\Microsoft.Azure.SpatialAnchors.dll"),
 					Path.Combine(BinariesFolder, "Microsoft.Azure.SpatialAnchors.dll"));
 
-				SafeCopy(Path.Combine(NugetFolder, ASAFolderName, string.Format(@"runtimes\win10-{0}\native\CoarseRelocUW.dll", Target.WindowsPlatform.Architecture.ToString())),
+				SafeCopy(Path.Combine(NugetFolder, ASAFolderName,
+						$@"runtimes\win10-{Target.WindowsPlatform.Architecture.ToString()}\native\CoarseRelocUW.dll"),
 					Path.Combine(BinariesFolder, "CoarseRelocUW.dll"));
 
 				// also all binaries must be in RuntimeDependencies
@@ -142,7 +148,8 @@ public class NuGetModule : ModuleRules
 
 				foreach (String Binary in Binaries)
                 {
-					SafeCopy(Path.Combine(NugetFolder, AOAFolderName, string.Format(@"runtimes\win10-{0}\native\{1}", Target.WindowsPlatform.Architecture.ToString(), Binary)),
+					SafeCopy(Path.Combine(NugetFolder, AOAFolderName,
+							$@"runtimes\win10-{Target.WindowsPlatform.Architecture.ToString()}\native\{Binary}"),
 						Path.Combine(BinariesFolder, Binary));
 
 					RuntimeDependencies.Add(Path.Combine(BinariesFolder, Binary));
@@ -211,7 +218,8 @@ public class NuGetModule : ModuleRules
 
 				// generate winrt headers and add them into include paths
 				int ExitCode = 0;
-				Utils.RunLocalProcessAndReturnStdOut(CppWinRTExe, string.Format("{0} -input \"{1}\" -output \"{2}\"", WinMDFilesStringbuilder, Target.WindowsPlatform.WindowsSdkVersion, CppWinRTFolder), out ExitCode, true);   
+				Utils.RunLocalProcessAndReturnStdOut(CppWinRTExe,
+					$"{WinMDFilesStringbuilder} -input \"{Target.WindowsPlatform.WindowsSdkVersion}\" -output \"{CppWinRTFolder}\"", out ExitCode, true);   
 				if (ExitCode < 0)
 				{
 					throw new BuildException("Failed to get generate WinRT headers.  See log for details.");
@@ -231,7 +239,7 @@ public class NuGetModule : ModuleRules
 	{
 		if(!File.Exists(source))
 		{
-			Log.TraceError("Class {0} can't find {1} file for copying", this.GetType().Name, source);
+			Logger.LogError("Class {Name} can't find {Source} file for copying", this.GetType().Name, source);
 			return;
 		}
 
@@ -241,14 +249,14 @@ public class NuGetModule : ModuleRules
 		}
 		catch(IOException ex)
 		{
-			Log.TraceWarning("Failed to copy {0} to {1} with exception: {2}", source, destination, ex.Message);
+			Logger.LogWarning("Failed to copy {Source} to {Destination} with exception: {Exception}", source, destination, ex.Message);
 			if (!File.Exists(destination))
 			{
-				Log.TraceError("Destination file {0} does not exist", destination);
+				Logger.LogError("Destination file {Destination} does not exist", destination);
 				return;
 			}
 
-			Log.TraceWarning("Destination file {0} already existed and is probably in use.  The old file will be used for the runtime dependency.  This may happen when packaging a Win64 exe from the editor.", destination);
+			Logger.LogWarning("Destination file {Destination} already existed and is probably in use.  The old file will be used for the runtime dependency.  This may happen when packaging a Win64 exe from the editor.", destination);
 		}
 	}
 }
