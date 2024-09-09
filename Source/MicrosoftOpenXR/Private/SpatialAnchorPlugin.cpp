@@ -137,8 +137,6 @@ namespace MicrosoftOpenXR
 
 	bool FSpatialAnchorPlugin::OnPinComponent(class UARPin* NewPin, XrSession InSession, XrSpace TrackingSpace, XrTime DisplayTime, float worldToMeterScale) 
 	{
-		XrResult result;
-
 		XrSpatialAnchorCreateInfoMSFT AnchorCreateDesc = {};
 		AnchorCreateDesc.type = XR_TYPE_SPATIAL_ANCHOR_CREATE_INFO_MSFT;
 		AnchorCreateDesc.next = nullptr;
@@ -147,12 +145,10 @@ namespace MicrosoftOpenXR
 		AnchorCreateDesc.time = DisplayTime;
 
 		XrSpatialAnchorMSFT AnchorId = {};
-		result = xrCreateSpatialAnchorMSFT(InSession, &AnchorCreateDesc, &AnchorId);
+		XrResult result = xrCreateSpatialAnchorMSFT(InSession, &AnchorCreateDesc, &AnchorId);
 
 		if (XR_FAILED(result))
-		{
 			return false;
-		}
 
 		XrSpatialAnchorSpaceCreateInfoMSFT AnchorSpaceCreateDesc = {};
 		AnchorSpaceCreateDesc.type = XR_TYPE_SPATIAL_ANCHOR_SPACE_CREATE_INFO_MSFT;
@@ -194,12 +190,11 @@ namespace MicrosoftOpenXR
 		if (void* nativeResource = Pin->GetNativeResource())
 		{
 			SAnchorMSFT* AnchorMSFT = reinterpret_cast<SAnchorMSFT*>(nativeResource);
-			XrResult result;
 			XrSpaceLocation SpaceLocation = {};
 			SpaceLocation.type = XR_TYPE_SPACE_LOCATION;
 			SpaceLocation.next = nullptr;
 
-			result = xrLocateSpace(AnchorMSFT->Space, TrackingSpace, DisplayTime, &SpaceLocation);
+			const XrResult result = xrLocateSpace(AnchorMSFT->Space, TrackingSpace, DisplayTime, &SpaceLocation);
 
 			const XrSpaceLocationFlags ValidFlags = XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT;
 			if (XR_SUCCEEDED(result) && ((SpaceLocation.locationFlags & ValidFlags) == ValidFlags))
@@ -230,13 +225,14 @@ namespace MicrosoftOpenXR
 
 	bool FSpatialAnchorPlugin::ArePinsReadyToLoad() 
 	{
+		std::lock_guard<std::mutex> lock(m_spatialAnchorStoreLock);
+
 		if (bIsAnchorPersistenceExtensionSupported)
 		{
 			return SpatialAnchorStoreMSFT != XR_NULL_HANDLE;
 		}
 
 #if WINRT_ANCHOR_STORE_AVAILABLE 
-		std::lock_guard<std::mutex> lock(m_spatialAnchorStoreLock);
 		return m_spatialAnchorStore != nullptr;
 #else
 		return false;
@@ -246,9 +242,9 @@ namespace MicrosoftOpenXR
 	void FSpatialAnchorPlugin::LoadARPins(XrSession InSession, TFunction<UARPin*(FName)> OnCreatePin) 
 	{
 		if (!IsAnchorStoreReady())
-		{
 			return;
-		}
+
+		std::lock_guard<std::mutex> lock(m_spatialAnchorStoreLock);
 
 		if (bIsAnchorPersistenceExtensionSupported)
 		{
@@ -303,13 +299,10 @@ namespace MicrosoftOpenXR
 		}
 
 #if WINRT_ANCHOR_STORE_AVAILABLE 
-		std::lock_guard<std::mutex> lock(m_spatialAnchorStoreLock);
 		if (m_spatialAnchorStore == nullptr) { return; }
 
 		for(auto p : m_spatialAnchorStore.GetAllSavedAnchors())
 		{
-			XrResult result;
-
 			auto name = p.Key();
 			auto wmrAnchor = p.Value();
 
@@ -322,7 +315,8 @@ namespace MicrosoftOpenXR
 			}
 
 			XrSpatialAnchorMSFT AnchorId = {};
-			result = xrCreateSpatialAnchorFromPerceptionAnchorMSFT(InSession, winrt::get_unknown(wmrAnchor), &AnchorId);
+			XrResult result =
+				xrCreateSpatialAnchorFromPerceptionAnchorMSFT(InSession, winrt::get_unknown(wmrAnchor), &AnchorId);
 
 			if (XR_FAILED(result))
 			{
@@ -356,9 +350,9 @@ namespace MicrosoftOpenXR
 	bool FSpatialAnchorPlugin::SaveARPin(XrSession InSession, FName InName, UARPin* Pin) 
 	{
 		if (!IsAnchorStoreReady())
-		{
 			return false;
-		}
+
+		std::lock_guard<std::mutex> lock(m_spatialAnchorStoreLock);
 
 		if (bIsAnchorPersistenceExtensionSupported)
 		{
@@ -388,18 +382,18 @@ namespace MicrosoftOpenXR
 			return XR_SUCCEEDED(result);
 		}
 
-#if WINRT_ANCHOR_STORE_AVAILABLE 
-		std::lock_guard<std::mutex> lock(m_spatialAnchorStoreLock);
+#if WINRT_ANCHOR_STORE_AVAILABLE
 		if (m_spatialAnchorStore == nullptr) { return false; }
 
 		void* nativeResource = Pin->GetNativeResource();
 		if (nativeResource == nullptr) { return false; }
 
 		SAnchorMSFT* AnchorMSFT = reinterpret_cast<SAnchorMSFT*>(nativeResource);
-		XrResult result;
 
 		SpatialAnchor wmrAnchor = nullptr;
-		result = xrTryGetPerceptionAnchorFromSpatialAnchorMSFT(InSession, AnchorMSFT->Anchor, reinterpret_cast<::IUnknown**>(winrt::put_abi(wmrAnchor)));
+		const XrResult result = xrTryGetPerceptionAnchorFromSpatialAnchorMSFT(InSession, AnchorMSFT->Anchor,
+		                                                                      reinterpret_cast<::IUnknown**>(winrt::put_abi(
+			                                                                      wmrAnchor)));
 		if (XR_FAILED(result))
 		{
 			return false;
@@ -415,9 +409,9 @@ namespace MicrosoftOpenXR
 	void FSpatialAnchorPlugin::RemoveSavedARPin(XrSession InSession, FName InName)
 	{
 		if (!IsAnchorStoreReady())
-		{
 			return;
-		}
+
+		std::lock_guard<std::mutex> lock(m_spatialAnchorStoreLock);
 
 		if (bIsAnchorPersistenceExtensionSupported)
 		{
@@ -440,8 +434,7 @@ namespace MicrosoftOpenXR
 			return;
 		}
 
-#if WINRT_ANCHOR_STORE_AVAILABLE 
-		std::lock_guard<std::mutex> lock(m_spatialAnchorStoreLock);
+#if WINRT_ANCHOR_STORE_AVAILABLE
 		if (m_spatialAnchorStore == nullptr) { return; }
 
 		const FString SaveId = InName.ToString().ToLower();
@@ -452,9 +445,9 @@ namespace MicrosoftOpenXR
 	void FSpatialAnchorPlugin::RemoveAllSavedARPins(XrSession InSession)
 	{
 		if (!IsAnchorStoreReady())
-		{
 			return;
-		}
+
+		std::lock_guard<std::mutex> lock(m_spatialAnchorStoreLock);
 
 		if (bIsAnchorPersistenceExtensionSupported)
 		{
@@ -462,8 +455,7 @@ namespace MicrosoftOpenXR
 			return;
 		}
 
-#if WINRT_ANCHOR_STORE_AVAILABLE 
-		std::lock_guard<std::mutex> lock(m_spatialAnchorStoreLock);
+#if WINRT_ANCHOR_STORE_AVAILABLE
 		if (m_spatialAnchorStore == nullptr) { return; }
 
 		m_spatialAnchorStore.Clear();
@@ -479,8 +471,9 @@ namespace MicrosoftOpenXR
 			return false;
 		}
 
-		XrResult result;
-		result = xrTryGetPerceptionAnchorFromSpatialAnchorMSFT(Session, AnchorId, reinterpret_cast<::IUnknown**>(winrt::put_abi(*OutPerceptionAnchor)));
+		const XrResult result = xrTryGetPerceptionAnchorFromSpatialAnchorMSFT(Session, AnchorId,
+		                                                                      reinterpret_cast<::IUnknown**>(winrt::put_abi(
+			                                                                      *OutPerceptionAnchor)));
 		if (XR_FAILED(result))
 		{
 			UE_LOG(LogHMD, Warning, TEXT("xrTryGetPerceptionAnchorFromSpatialAnchorMSFT failed.  Ignoring."));
@@ -500,6 +493,8 @@ namespace MicrosoftOpenXR
 		{
 			return false;
 		}
+
+		std::lock_guard<std::mutex> lock(m_spatialAnchorStoreLock);
 
 		if (bIsAnchorPersistenceExtensionSupported)
 		{
@@ -532,7 +527,6 @@ namespace MicrosoftOpenXR
 			return XR_SUCCEEDED(xrPersistSpatialAnchorMSFT(SpatialAnchorStoreMSFT, &PersistenceInfo));
 		}
 
-		std::lock_guard<std::mutex> lock(m_spatialAnchorStoreLock);
 		if (m_spatialAnchorStore == nullptr) 
 		{ 
 			UE_LOG(LogHMD, Warning, TEXT("Attempting to store perception anchor, but local anchor store is not supported."));
