@@ -12,7 +12,7 @@
 
 #include "Windows/AllowWindowsPlatformTypes.h"
 #include "Windows/AllowWindowsPlatformAtomics.h"
-#include "Windows/PreWindowsApi.h"
+#include "Windows/WindowsHWrapper.h"
 
 #include <string>
 #include <sstream>
@@ -24,7 +24,6 @@
 #include <winrt/Windows.Media.Capture.Frames.h>
 #include <winrt/Windows.Perception.Spatial.h>
 
-#include "Windows/PostWindowsApi.h"
 #include "Windows/HideWindowsPlatformAtomics.h"
 #include "Windows/HideWindowsPlatformTypes.h"
 
@@ -75,7 +74,7 @@ namespace MicrosoftOpenXR
 				return TEXT("FSharedTextureHolder FGCObject");
 			}
 
-			UOpenXRCameraImageTexture* CameraImage = nullptr;
+			TObjectPtr<UOpenXRCameraImageTexture> CameraImage = nullptr;
 		};
 
 		PFN_xrCreateSpatialGraphNodeSpaceMSFT xrCreateSpatialGraphNodeSpaceMSFT;

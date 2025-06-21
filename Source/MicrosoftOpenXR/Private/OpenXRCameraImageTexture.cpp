@@ -6,6 +6,7 @@
 #include "GlobalShader.h"
 #include "RenderUtils.h"
 #include "RHIStaticStates.h"
+#include "RHICommandList.h"
 #include "PipelineStateCache.h"
 #include "ShaderParameterUtils.h"
 #include "SceneUtils.h"
@@ -270,8 +271,8 @@ private:
 			GraphicsPSOInit.BoundShaderState.PixelShaderRHI = ConvertShader.GetPixelShader();
 			SetGraphicsPipelineState(CommandList, GraphicsPSOInit, 0);
 
-			FShaderResourceViewRHIRef Y_SRV = RHICreateShaderResourceView(CopyTextureRef, 0, 1, PF_G8);
-			FShaderResourceViewRHIRef UV_SRV = RHICreateShaderResourceView(CopyTextureRef, 0, 1, PF_R8G8);
+			FShaderResourceViewRHIRef Y_SRV = CommandList.CreateShaderResourceView(CopyTextureRef, 0, 1, PF_G8);
+			FShaderResourceViewRHIRef UV_SRV = CommandList.CreateShaderResourceView(CopyTextureRef, 0, 1, PF_R8G8);
 
 			FMatrix PreMtx = FMatrix::Identity;
 			PreMtx.M[0][3] = -MediaShaders::YUVOffset8bits.X;

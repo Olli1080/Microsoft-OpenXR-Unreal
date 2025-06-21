@@ -11,7 +11,7 @@
 
 #include "Windows/AllowWindowsPlatformTypes.h"
 #include "Windows/AllowWindowsPlatformAtomics.h"
-#include "Windows/PreWindowsApi.h"
+#include "Windows/WindowsHWrapper.h"
 
 #include <unknwn.h>
 #include <winrt/Windows.Foundation.h>
@@ -21,7 +21,6 @@
 
 #include <mutex>
 
-#include "Windows/PostWindowsApi.h"
 #include "Windows/HideWindowsPlatformAtomics.h"
 #include "Windows/HideWindowsPlatformTypes.h"
 

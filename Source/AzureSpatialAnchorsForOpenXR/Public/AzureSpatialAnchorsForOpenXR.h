@@ -18,14 +18,13 @@
 
 #include "Windows/AllowWindowsPlatformTypes.h"
 #include "Windows/AllowWindowsPlatformAtomics.h"
-#include "Windows/PreWindowsApi.h"
+#include "Windows/WindowsHWrapper.h"
 
 #include <mutex>
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Microsoft.Azure.SpatialAnchors.h>
 #include <winrt/Windows.Foundation.Collections.h>
 
-#include "Windows/PostWindowsApi.h"
 #include "Windows/HideWindowsPlatformAtomics.h"
 #include "Windows/HideWindowsPlatformTypes.h"
 

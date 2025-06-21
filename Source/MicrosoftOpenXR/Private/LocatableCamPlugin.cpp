@@ -17,7 +17,7 @@
 
 #include "Windows/AllowWindowsPlatformTypes.h"
 #include "Windows/AllowWindowsPlatformAtomics.h"
-#include "Windows/PreWindowsApi.h"
+#include "Windows/WindowsHWrapper.h"
 
 #include <DXGI1_4.h>
 #include <mfapi.h>
@@ -30,7 +30,6 @@
 #include <winrt/Windows.Media.Devices.h>
 #include <winrt/Windows.Media.Devices.Core.h>
 
-#include "Windows/PostWindowsApi.h"
 #include "Windows/HideWindowsPlatformAtomics.h"
 #include "Windows/HideWindowsPlatformTypes.h"
 

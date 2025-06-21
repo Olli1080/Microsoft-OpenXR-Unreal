@@ -9,9 +9,13 @@
 #include "OpenXRCore.h"
 #include "MicrosoftOpenXR.h"
 
+#include "Microsoft/AllowMicrosoftPlatformTypes.h"
+
 #include <winrt/Windows.Perception.Spatial.Preview.h>
 #include <winrt/Microsoft.Azure.ObjectAnchors.h>
 #include <winrt/Windows.Foundation.Numerics.h>
+
+#include "Microsoft/HideMicrosoftPlatformTypes.h"
 
 #include "Async/Async.h"
 //#include "Engine/Engine.h"
